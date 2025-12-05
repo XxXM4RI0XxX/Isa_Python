@@ -30,7 +30,7 @@
 - En caso de información errónea del usuario, solo se requiere reingresar el valor
 
 # Estructura de datos
-Se decidira la estructura de los datos mas adelante xd
+El inventario es manejado por una lista de productos, 
 
 # Información del producto
 - ID
