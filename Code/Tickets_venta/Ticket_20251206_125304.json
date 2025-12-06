@@ -1,0 +1,22 @@
+{
+  "fecha": "20251206_125304",
+  "productos": [
+    {
+      "ID": 2,
+      "nombre": "Mouse Óptico Swift",
+      "categoria": "Periféricos",
+      "precio": 249.5,
+      "proveedor": "ClickMaster",
+      "cantidad": 1
+    },
+    {
+      "ID": 3,
+      "nombre": "SSD UltraFlash 512GB",
+      "categoria": "Almacenamiento",
+      "precio": 999.99,
+      "proveedor": "DataStone",
+      "cantidad": 1
+    }
+  ],
+  "total": 1249.49
+}

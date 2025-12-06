@@ -1,5 +1,6 @@
 import textwrap
-import json
+import os, json
+from datetime import datetime
 
 def menu_principal(inv):
     while True:
@@ -24,6 +25,9 @@ def menu_principal(inv):
 
 # TODO relacionado con carrito de ventas ///////////////////////
 def menu_ventas(inv):
+    if not inv:
+        print("No hay ningún producto en inventario :o ...")
+        return
     carrito = []
     carrito_aux = {}
     while True:
@@ -42,23 +46,32 @@ def menu_ventas(inv):
         if opt == 1:
             agregar_producto_carrito(inv,carrito,carrito_aux)
         elif opt == 2:
+            if not carrito:
+                print("No hay ningún producto en el carrito ...")
+                continue
             eliminar_producto_carrito(inv,carrito,carrito_aux)
         elif opt == 3:
             ver_carrito(carrito,carrito_aux)
         elif opt == 4:
+            if not carrito:
+                print("No hay ningún producto en el carrito ...")
+                continue
             print("Confirmar vaciar carrito [1) Si , otro) Cancelar")
             opt = input("> ")
             if opt == '1':
                 vaciar_carrito(inv,carrito,carrito_aux)
                 print("¡ Carrito vaciado !")
         elif opt == 5:
+            if not carrito:
+                print("No hay ningún producto en el carrito ...")
+                continue
             finalizar_compra(carrito,carrito_aux)
             break
         else:
             if carrito:
                 opt = input("Se vaciará el carrito, ¿Continuar? [1) Si , Otro) No]\n> ")
                 if opt == "1":
-                    vaciar_carrito(inv,carrito)
+                    vaciar_carrito(inv,carrito,carrito_aux)
                     break
             break
 
@@ -93,13 +106,13 @@ def eliminar_producto_carrito(inv,carr,c_aux):
     ver_carrito(carr,c_aux)
     if not carr:
         return
-
     id_prod = detectar_valor_entero_positivo("Producto a eliminar:")
     
     prod = None
     
-    for prod in carr:
-        if prod["ID"] == id_prod:
+    for p in carr:
+        if p["ID"] == id_prod:
+            prod = p
             break
             
     if prod is None:
@@ -120,10 +133,16 @@ def eliminar_producto_carrito(inv,carr,c_aux):
     print(f"¡ Producto {inv[id_prod]["nombre"]} eliminado con exito !")
 
 def ver_carrito(carr,c_aux):
+    print("--- CARRITO ---")
     if not carr:
         print("No hay ningún producto agregado al carrito ...")
+        return
+    print("╔" + "═" * 70 + "╗")
+    print(f"║{"ID":>3} │ {"Cant":<5} │ {"Nombre":<30} │ {"Precio":<10} │ {"Total":>10}║")
+    print(f"╠{"═" * 4:>3}╤{"═" * 7:<5}╤{"═" * 32:<30}╤{"═" * 12:<10}╤{"═" * 11:>10}╣")
     for prod in carr:
-        print(f"{prod["ID"]} | {c_aux[prod["ID"]]}  {prod["nombre"]}  ${prod["precio"]} == ${prod["precio"] * c_aux[prod["ID"]]}")
+        imprimir_producto_carrito(prod,c_aux)
+    print(f"╚{"═" * 4:>3}╧{"═" * 7:<5}╧{"═" * 32:<30}╧{"═" * 12:>10}╧{"═" * 11:>10}╝")
 
 def imprimir_carrito(carr,c_aux):
     texto = ""
@@ -165,7 +184,7 @@ def finalizar_compra(carr,c_aux):
 
     print(" ¡ Compra completada !")
 
-    #generar_ticket_venta(carr)
+    generar_ticket_venta(carr,c_aux,total)
 
     carr.clear()
 
@@ -193,21 +212,39 @@ def menu_inventario(inv):
             break
 
 def ver_inventario(inv):
-    print("\n")
+    print("--- INVENTARIO ---")
+    if not inv:
+        print("No hay ningun producto en inventario ...")
+        return
+    print("╔" + "═" * 112 + "╗")
+    print(f"║{"ID":>3} │ {"Nombre":<30} │ {"Proveedor":<30} │ {"Categoria":<20} │{"Precio":>10} │ {"Stock":>5}║")
+    print(f"╠{"═"*4:>3}╤{"═"*32:<30}╤{"═"*32:<30}╤{"═"*22:<20}╤{"═"*11:>10}╤{"═"*6:>5}╣")
     for llave, producto in inv.items():
-        print(f"--ID: {llave}--", imprimir_producto(producto))
+        imprimir_producto_inventario(producto)
+    print(f"╚{"═"*4:>3}╧{"═"*32:<30}╧{"═"*32:<30}╧{"═"*22:<20}╧{"═"*11:>10}╧{"═"*6:>5}╝")
 
 def agregar_producto(inv):
     global identificador
-    print("--------------------")
+    if not inv:
+        identificador += 2
+    print("[Dejar vacío para cancelar (Excepto al ingresar valores numéricos)]")
 
-    nombre = detectar_cadena_vacia("Nombre:")
+    nombre = input("Nombre:\n> ")
+    if nombre == "":
+        print("Cancelando ...")
+        return
 
-    categoria = detectar_cadena_vacia("Categoría:")
+    categoria = input("Categoría:\n> ")
+    if categoria == "":
+        print("Cancelando ...")
+        return
 
     precio = detectar_valor_decimal_positivo("Precio:")
 
-    proveedor = detectar_cadena_vacia("Proveedor:")
+    proveedor = input("Proveedor:\n> ")
+    if proveedor == "":
+        print("Cancelando ...")
+        return
 
     stock = detectar_valor_entero_positivo("Stock:")
 
@@ -225,9 +262,13 @@ def agregar_producto(inv):
     ver_inventario(inv)
 
 def administrar_inventario(inv):
+    if not inv:
+        print("No hay ningún producto en inventario :o ...")
+        return
     while True:
-
         ver_inventario(inv)
+        if not inv:
+            return
         id_prod = detectar_valor_entero_positivo("¿Que producto desea modificar? (0 -> cancelar)")
 
         try:
@@ -255,7 +296,7 @@ def administrar_inventario(inv):
 
 def modificar_atributo(prod):
     while True:
-        print(imprimir_producto(prod))
+        print("->" + prod["nombre"])
         print(textwrap.dedent("""
         ¿Que atributo desea modificar?
         1) Nombre
@@ -377,44 +418,38 @@ def detectar_valor_decimal_positivo(mensaje_entrada):
             print(">>> E401: Valor erróneo ingresado, intente de nuevo ...")
             continue
 
-def imprimir_producto(prod):
-    return textwrap.dedent(f"""
-            \tNombre: {prod["nombre"]}
-            \tCategoría: {prod["categoria"]}
-            \tPrecio unitario: ${prod["precio"]}
-            \tProveedor: {prod["proveedor"]}
-            Stock: {prod["stock"]} Pz""")
+def imprimir_producto_inventario(prod):
+    print(f"║{prod["ID"]:>3} │ {prod["nombre"]:<30} │ {prod["proveedor"]:<30} │ {prod["categoria"]:<20} │${prod["precio"]:>10.2f}│ {prod["stock"]:>5}║")
 
-#def generar_ticket_venta(carr):
+def imprimir_producto_carrito(prod,c_aux):
+    print(f"║{prod["ID"]:>3} │ {c_aux[prod["ID"]]:>5} │ {prod["nombre"]:<30} │${prod["precio"]:>10.2f} │${prod["precio"] * c_aux[prod["ID"]]:>10.2f}║")
+    #print(f"{prod["ID"]} | {c_aux[prod["ID"]]}  {prod["nombre"]}  ${prod["precio"]} == ${prod["precio"] * c_aux[prod["ID"]]}")
 
+def generar_ticket_venta(carr,c_aux,total):
+    os.makedirs("Tickets_venta", exist_ok=True)
+
+    fecha = datetime.now().strftime("%Y%m%d_%H%M%S")
+    ruta = f"Tickets_venta/Ticket_{fecha}.json"
+
+    productos = []
+
+    for prod, (id_prod, cantidad) in zip(carr, c_aux.items()):
+        productos.append({"ID":prod["ID"],"nombre":prod["nombre"],
+                          "categoria":prod["categoria"],"precio":prod["precio"],
+                          "proveedor":prod["proveedor"],"cantidad":c_aux[id_prod]})
+
+    ticket = {
+        "fecha": fecha,
+        "productos": productos,
+        "total": total
+    }
+
+    with open(ruta, "w", encoding="utf-8") as f:
+        json.dump(ticket, f, ensure_ascii=False, indent=2)
 
 global identificador
 
 if __name__ == "__main__":
-    inventario = {
-        1: {
-            "ID": 1,
-            "nombre": "Laptop Nova 14",
-            "categoria": "Computadoras",
-            "precio": 15899.00,
-            "proveedor": "TechWave",
-            "stock": 2
-        },
-        2: {
-            "ID": 2,
-            "nombre": "Mouse Óptico Swift",
-            "categoria": "Periféricos",
-            "precio": 249.50,
-            "proveedor": "ClickMaster",
-            "stock": 34
-        },
-        3: {
-            "ID": 3,
-            "nombre": "SSD UltraFlash 512GB",
-            "categoria": "Almacenamiento",
-            "precio": 999.99,
-            "proveedor": "DataStone",
-            "stock": 18
-        }}
+    inventario = {}
     identificador = obtener_mayor_id(inventario)
     menu_principal(inventario)

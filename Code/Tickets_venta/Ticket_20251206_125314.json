@@ -1,0 +1,14 @@
+{
+  "fecha": "20251206_125314",
+  "productos": [
+    {
+      "ID": 1,
+      "nombre": "Laptop Nova 14",
+      "categoria": "Computadoras",
+      "precio": 15899.0,
+      "proveedor": "TechWave",
+      "cantidad": 2
+    }
+  ],
+  "total": 31798.0
+}
