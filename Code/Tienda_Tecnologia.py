@@ -4,17 +4,13 @@ def menu_principal(inv):
     while True:
 
         print(textwrap.dedent("""
-        ______Menu______
+            ______Menu______
         1) Realizar venta
         2) Administrar inventario
         3) Generar reporte
         0) Salir"""))
 
-        try:
-            opt = int(input(">> "))
-        except ValueError:
-            print("E400: El valor ingresado es incorrecto\n")
-            continue
+        opt = detectar_valor_entero_positivo("")
 
         if opt == 1:
             menu_ventas(inv)
@@ -25,36 +21,129 @@ def menu_principal(inv):
         else:
             break
 
-# TODO relacionado con realización de ventas ///////////////////////
+# TODO relacionado con carrito de ventas ///////////////////////
 def menu_ventas(inv):
+    carrito = []
     while True:
 
         print(textwrap.dedent("""
                     $$$ Carrito $$$
                 1) Agregar producto a carrito
                 2) Eliminar producto del carrito
-                3) Vaciar carrito
-                4) Pagar carrito
+                3) Ver productos en carrito
+                4) Vaciar carrito
+                5) Pagar carrito
                 0) Cancelar venta"""))
 
         opt = detectar_valor_entero_positivo("")
 
         if opt == 1:
-            agregar_producto_carrito(inv)
+            agregar_producto_carrito(inv,carrito)
         elif opt == 2:
-            eliminar_producto_carrito()
+            eliminar_producto_carrito(inv,carrito)
         elif opt == 3:
-            x = 0
+            ver_carrito(carrito)
         elif opt == 4:
-            x = 0
+            print("Confirmar vaciar carrito [1) Si , otro) Cancelar")
+            opt = input("> ")
+            if opt == '1':
+                vaciar_carrito(inv,carrito)
+                print("¡ Carrito vaciado !")
+        elif opt == 5:
+            finalizar_compra(carrito)
+            break
         else:
+            if carrito:
+                opt = input("Se vaciará el carrito, ¿Continuar? [1) Si , Otro) No]\n> ")
+                if opt == "1":
+                    vaciar_carrito(inv,carrito)
+                    break
             break
 
-def agregar_producto_carrito(inv):
-    x = 0
+def agregar_producto_carrito(inv,carr):
+    ver_inventario(inv)
 
-def eliminar_producto_carrito():
-    x = 0
+    id_prod = detectar_valor_entero_positivo("Producto a agregar:")
+
+    if not detectar_existencia_inventario(inv,id_prod):
+        return
+
+    for id_p , prod in inv.items():
+        if id_p == id_prod:
+            if prod["stock"] < 1:
+                print("No hay suficiente inventario para agregar ...")
+                return
+            prod["stock"] -= 1
+            break
+
+    carr.append(inv[id_prod])
+
+    print(f"¡ Producto {inv[id_prod]["nombre"]} agregado con exito !")
+
+def eliminar_producto_carrito(inv,carr):
+    ver_carrito(carr)
+    if not carr:
+        return
+
+    id_prod = detectar_valor_entero_positivo("Producto a eliminar:")
+    
+    prod = None
+    
+    for prod in carr:
+        if prod["ID"] == id_prod:
+            break
+            
+    if prod is None:
+        print(">>> E406: Producto no existe en carrito ...")
+        return
+
+    for id_p, p in inv.items():
+        if id_p == id_prod:
+            p["stock"] += 1
+            break
+
+    carr.remove(prod)
+
+    print(f"¡ Producto {inv[id_prod]["nombre"]} eliminado con exito !")
+
+def ver_carrito(carr):
+    if not carr:
+        print("No hay ningún producto agregado al carrito ...")
+    for prod in carr:
+        print("-> " + str(prod["ID"]) + " " + prod["nombre"] + " $" + str(prod["precio"]))
+
+def vaciar_carrito(inv,carr):
+    if not carr:
+        return
+    for prod in carr:
+        id_prod = prod["ID"]
+        p = inv[id_prod]
+        p["stock"] += 1
+
+    carr.clear()
+
+def finalizar_compra(carr):
+    ver_carrito(carr)
+    if not carr:
+        return
+
+    print(textwrap.dedent(f"""
+    Artículos: {len(carr)}
+    Total: ${sum(prod["precio"] for prod in carr)}
+
+    ¿Desea completar la compra? [1) Si , Otro) No]"""))
+
+    opt = input("> ")
+
+    if opt != "1":
+        print("Compra cancelada...")
+        return
+
+    print(" ¡ Compra completada !")
+
+    # Aqui se tendria que generar un ticket de compra con la fecha, y se guardaria en no se donde xd
+
+    carr.clear()
 
 # TODO relacionado con gestion de inventario //////////////////////
 
@@ -80,24 +169,26 @@ def menu_inventario(inv):
             break
 
 def ver_inventario(inv):
+    print("\n")
     for llave, producto in inv.items():
         print(f"--ID: {llave}--", imprimir_producto(producto))
 
 def agregar_producto(inv):
-    global ID
+    global identificador
     print("--------------------")
 
-    nombre = input("Nombre: ")
+    nombre = detectar_cadena_vacia("Nombre:")
 
-    categoria = input("Categoría: ")
+    categoria = detectar_cadena_vacia("Categoría:")
 
     precio = detectar_valor_decimal_positivo("Precio:")
 
-    proveedor = input("Proveedor: ")
+    proveedor = detectar_cadena_vacia("Proveedor:")
 
     stock = detectar_valor_entero_positivo("Stock:")
 
-    inv[ID] = {
+    inv[identificador] = {
+        "ID": identificador,
         "nombre": nombre,
         "categoria": categoria,
         "precio": precio,
@@ -105,7 +196,7 @@ def agregar_producto(inv):
         "stock": stock
     }
 
-    ID += 1
+    identificador += 1
 
     ver_inventario(inv)
 
@@ -113,12 +204,12 @@ def administrar_inventario(inv):
     while True:
 
         ver_inventario(inv)
-        identf = detectar_valor_entero_positivo("¿Que producto desea modificar? (0 -> cancelar)")
+        id_prod = detectar_valor_entero_positivo("¿Que producto desea modificar? (0 -> cancelar)")
 
         try:
-            producto = inv[identf]
+            producto = inv[id_prod]
         except KeyError:
-            if identf != 0:
+            if id_prod != 0:
                 print(">>> E404: Producto no encontrado  ...")
             return
 
@@ -135,39 +226,47 @@ def administrar_inventario(inv):
         if opt == 1:
             modificar_atributo(producto)
         elif opt == 2:
-            inv.pop(identf)
+            inv.pop(id_prod)
         else: break
 
 def modificar_atributo(prod):
     while True:
+        print(imprimir_producto(prod))
         print(textwrap.dedent("""
         ¿Que atributo desea modificar?
         1) Nombre
         2) Categoría
         3) Precio unitario
         4) Proveedor
-        5) Stock ¡¡Verificar stock actual antes de continuar!!
+        5) Aumentar/Disminuir stock ¡¡Verificar stock actual antes de continuar!!
         0) Salir"""))
 
         opt = detectar_valor_entero_positivo("")
 
         if opt == 1:
-            nuevo_nombre = input("Nuevo nombre: ")
+            nuevo_nombre = detectar_cadena_vacia("Nuevo nombre:")
             prod["nombre"] = nuevo_nombre
         elif opt == 2:
-            nueva_categoria = input("Nueva categoria: ")
+            nueva_categoria = detectar_cadena_vacia("Nueva categoria:")
             prod["categoria"] = nueva_categoria
         elif opt == 3:
             nuevo_precio = detectar_valor_decimal_positivo("Nuevo precio:")
             prod["precio"] = nuevo_precio
         elif opt == 4:
-            nuevo_proveedor = input("Nuevo proveedor: ")
+            nuevo_proveedor = detectar_cadena_vacia("Nuevo proveedor:")
             prod["proveedor"] = nuevo_proveedor
         elif opt == 5:
-            nuevo_stock = detectar_valor_entero_positivo("Nuevo stock:")
-            prod["stock"] = nuevo_stock
+
+            nuevo_stock = detectar_valor_entero("+/- stock:")
+            if nuevo_stock == 0:
+                print("...Porque?... Cancelando...")
+                continue
+            elif nuevo_stock < 0 and (prod["stock"] + nuevo_stock) < 0:
+                print(">>> E407: No se puede reducir stock no existente...")
+                continue
+            else:
+                prod["stock"] += nuevo_stock
         else:
-            imprimir_producto(prod)
             break
 
 # TODO relacionado con generación de reportes ////////////////////
@@ -176,13 +275,33 @@ def menu_reportes(inv):
 
 # TODO relacionado con ejecución del sistema /////////////////////
 
-global ID
-
 # Regresa el ID mayor del inventario actual para usarlo como referencia para nuevos productos
 def obtener_mayor_id(inv):
     if not inv:  # si está vacío
         return -1
     return max(inv.keys())+1
+
+def detectar_existencia_inventario(inv,id_prod):
+    try:
+        prod = inv[id_prod]
+        return True
+    except KeyError:
+        if id != 0:
+            print(">>> E404: Producto no encontrado  ...")
+            return False
+
+def detectar_cadena_vacia(mensaje_entrada):
+    while True:
+        if mensaje_entrada != "":
+            print(mensaje_entrada)
+
+        cad = input("> ")
+
+        if cad.strip() == "":
+            print(">>> E405: Se necesita ingresar un valor ...")
+            continue
+
+        return cad
 
 def detectar_valor_entero_positivo(mensaje_entrada):
     while True:
@@ -193,8 +312,22 @@ def detectar_valor_entero_positivo(mensaje_entrada):
             val = int(input("> "))
 
             if val < 0:
-                print(">>> E402: Valor incoherente detectado, intente de nuevo ...")
+                print(">>> E408: Valor incoherente detectado, intente de nuevo ...")
                 continue
+
+            return val
+
+        except ValueError:
+            print(">>> E401: Valor erróneo ingresado, intente de nuevo ...")
+            continue
+            
+def detectar_valor_entero(mensaje_entrada):
+    while True:
+        try:
+            if mensaje_entrada != "":
+                print(mensaje_entrada)
+
+            val = int(input("> "))
 
             return val
 
@@ -211,7 +344,7 @@ def detectar_valor_decimal_positivo(mensaje_entrada):
             val = float(input("> "))
 
             if val < 0.01:
-                print(">>> E402: Valor incoherente detectado, intente de nuevo ...")
+                print(">>> E408: Valor incoherente detectado, intente de nuevo ...")
                 continue
 
             return val
@@ -228,16 +361,20 @@ def imprimir_producto(prod):
             \tProveedor: {prod["proveedor"]}
             Stock: {prod["stock"]} Pz""")
 
+global identificador
+
 if __name__ == "__main__":
     inventario = {
         1: {
+            "ID": 1,
             "nombre": "Laptop Nova 14",
             "categoria": "Computadoras",
             "precio": 15899.00,
             "proveedor": "TechWave",
-            "stock": 12
+            "stock": 2
         },
         2: {
+            "ID": 2,
             "nombre": "Mouse Óptico Swift",
             "categoria": "Periféricos",
             "precio": 249.50,
@@ -245,11 +382,12 @@ if __name__ == "__main__":
             "stock": 34
         },
         3: {
+            "ID": 3,
             "nombre": "SSD UltraFlash 512GB",
             "categoria": "Almacenamiento",
             "precio": 999.99,
             "proveedor": "DataStone",
             "stock": 18
         }}
-    ID = obtener_mayor_id(inventario)
+    identificador = obtener_mayor_id(inventario)
     menu_principal(inventario)

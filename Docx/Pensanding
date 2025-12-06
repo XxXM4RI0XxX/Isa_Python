@@ -1,0 +1,12 @@
+El inventario es diccionario de productos que son diccionarios.
+Cada diccionario (producto) contiene subdiccionarios que son los atributos.
+{ int : { key : val , key : val, ...} }
+Para acceder a llaves: invenario.keys()
+Para acceder a un producto: inventario[ID]
+Para acceder a un atributo de un producto: inventario[ID]["atributo"]
+
+El carrito es una lista de diccionarios.
+Y cada diccionario tiene subdiccionarios tambien
+Para acceder a un producto:
+prod = ciclo en carrito: producto[coincida con atributo buscado]
+
