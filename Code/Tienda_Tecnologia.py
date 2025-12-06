@@ -1,4 +1,5 @@
 import textwrap
+import json
 
 def menu_principal(inv):
     while True:
@@ -24,6 +25,7 @@ def menu_principal(inv):
 # TODO relacionado con carrito de ventas ///////////////////////
 def menu_ventas(inv):
     carrito = []
+    carrito_aux = {}
     while True:
 
         print(textwrap.dedent("""
@@ -38,19 +40,19 @@ def menu_ventas(inv):
         opt = detectar_valor_entero_positivo("")
 
         if opt == 1:
-            agregar_producto_carrito(inv,carrito)
+            agregar_producto_carrito(inv,carrito,carrito_aux)
         elif opt == 2:
-            eliminar_producto_carrito(inv,carrito)
+            eliminar_producto_carrito(inv,carrito,carrito_aux)
         elif opt == 3:
-            ver_carrito(carrito)
+            ver_carrito(carrito,carrito_aux)
         elif opt == 4:
             print("Confirmar vaciar carrito [1) Si , otro) Cancelar")
             opt = input("> ")
             if opt == '1':
-                vaciar_carrito(inv,carrito)
+                vaciar_carrito(inv,carrito,carrito_aux)
                 print("¡ Carrito vaciado !")
         elif opt == 5:
-            finalizar_compra(carrito)
+            finalizar_compra(carrito,carrito_aux)
             break
         else:
             if carrito:
@@ -60,7 +62,7 @@ def menu_ventas(inv):
                     break
             break
 
-def agregar_producto_carrito(inv,carr):
+def agregar_producto_carrito(inv,carr,c_aux):
     ver_inventario(inv)
 
     id_prod = detectar_valor_entero_positivo("Producto a agregar:")
@@ -68,20 +70,27 @@ def agregar_producto_carrito(inv,carr):
     if not detectar_existencia_inventario(inv,id_prod):
         return
 
-    for id_p , prod in inv.items():
+    prod = None
+
+    for id_p , p in inv.items():
         if id_p == id_prod:
-            if prod["stock"] < 1:
+            if p["stock"] < 1:
                 print("No hay suficiente inventario para agregar ...")
                 return
-            prod["stock"] -= 1
+            prod = p
+            p["stock"] -= 1
             break
 
-    carr.append(inv[id_prod])
+    if carr.count(prod) == 0:
+        carr.append(inv[id_prod])
+        c_aux[prod["ID"]] = 1
+    else:
+        c_aux[prod["ID"]] += 1
 
     print(f"¡ Producto {inv[id_prod]["nombre"]} agregado con exito !")
 
-def eliminar_producto_carrito(inv,carr):
-    ver_carrito(carr)
+def eliminar_producto_carrito(inv,carr,c_aux):
+    ver_carrito(carr,c_aux)
     if not carr:
         return
 
@@ -102,35 +111,50 @@ def eliminar_producto_carrito(inv,carr):
             p["stock"] += 1
             break
 
-    carr.remove(prod)
+    if c_aux[prod["ID"]] > 1:
+        c_aux[prod["ID"]] -= 1
+    else:
+        c_aux.pop(prod["ID"])
+        carr.remove(prod)
 
     print(f"¡ Producto {inv[id_prod]["nombre"]} eliminado con exito !")
 
-def ver_carrito(carr):
+def ver_carrito(carr,c_aux):
     if not carr:
         print("No hay ningún producto agregado al carrito ...")
     for prod in carr:
-        print("-> " + str(prod["ID"]) + " " + prod["nombre"] + " $" + str(prod["precio"]))
+        print(f"{prod["ID"]} | {c_aux[prod["ID"]]}  {prod["nombre"]}  ${prod["precio"]} == ${prod["precio"] * c_aux[prod["ID"]]}")
 
-def vaciar_carrito(inv,carr):
+def imprimir_carrito(carr,c_aux):
+    texto = ""
+    for prod in carr:
+        texto += f"{prod["ID"]} | {c_aux[prod["ID"]]}  {prod["nombre"]}  ${prod["precio"]} == ${prod["precio"] * c_aux[prod["ID"]]}\n\t"
+
+    return texto
+
+def vaciar_carrito(inv,carr,c_aux):
     if not carr:
         return
-    for prod in carr:
-        id_prod = prod["ID"]
-        p = inv[id_prod]
-        p["stock"] += 1
+    for id_p in c_aux: # Regresar productos al inventario
+        p = inv[id_p]
+        p["stock"] += c_aux[id_p]
 
     carr.clear()
 
-def finalizar_compra(carr):
-    ver_carrito(carr)
+def finalizar_compra(carr,c_aux):
     if not carr:
         return
 
+    total = 0
+
+    for prod, (id_prod, cantidad) in zip(carr, c_aux.items()):
+        total += prod["precio"] * cantidad
+
     print(textwrap.dedent(f"""
     Artículos: {len(carr)}
-    Total: ${sum(prod["precio"] for prod in carr)}
-
+    -----------------------------------------------------
+    {imprimir_carrito(carr,c_aux)}-----------------------------------------------------
+    Total: ${total}
     ¿Desea completar la compra? [1) Si , Otro) No]"""))
 
     opt = input("> ")
@@ -141,7 +165,7 @@ def finalizar_compra(carr):
 
     print(" ¡ Compra completada !")
 
-    # Aqui se tendria que generar un ticket de compra con la fecha, y se guardaria en no se donde xd
+    #generar_ticket_venta(carr)
 
     carr.clear()
 
@@ -360,6 +384,9 @@ def imprimir_producto(prod):
             \tPrecio unitario: ${prod["precio"]}
             \tProveedor: {prod["proveedor"]}
             Stock: {prod["stock"]} Pz""")
+
+#def generar_ticket_venta(carr):
+
 
 global identificador
 

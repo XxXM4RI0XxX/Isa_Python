@@ -1,0 +1,15 @@
+Resumen sobre cómo iterar diccionarios en Python:
+
+For… | Qué recibe cada iteración:
+
+for x in dicc | llave 
+
+for x in dicc.keys() | llave 
+
+for x in dicc.values() | valor 
+
+for k, v in dicc.items() | llave y valor
+
+Notas: - Al iterar directamente ‘for val in diccionario’, Python recorre
+sólo las llaves. - Usa .values() para obtener valores. - Usa .items()
+para obtener tanto llave como valor en cada iteración.
