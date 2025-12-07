@@ -12,7 +12,7 @@ def menu_principal(inv):
         3) Generar reporte
         0) Salir"""))
 
-        opt = detectar_valor_entero_positivo("")
+        opt = detectar_valor_entero_positivo("",3)
 
         if opt == 1:
             menu_ventas(inv)
@@ -26,7 +26,7 @@ def menu_principal(inv):
 # TODO relacionado con carrito de ventas ///////////////////////
 def menu_ventas(inv):
     if not inv:
-        print("No hay ningún producto en inventario :o ...")
+        print(f"{AMARILLO}No hay ningún producto en inventario :o ...{BLANCO}")
         return
     carrito = []
     carrito_aux = {}
@@ -41,35 +41,36 @@ def menu_ventas(inv):
                 5) Pagar carrito
                 0) Cancelar venta"""))
 
-        opt = detectar_valor_entero_positivo("")
+        opt = detectar_valor_entero_positivo("",5)
 
         if opt == 1:
             agregar_producto_carrito(inv,carrito,carrito_aux)
         elif opt == 2:
             if not carrito:
-                print("No hay ningún producto en el carrito ...")
+                print(f"{AMARILLO}No hay ningún producto en el carrito ...{BLANCO}")
                 continue
             eliminar_producto_carrito(inv,carrito,carrito_aux)
         elif opt == 3:
             ver_carrito(carrito,carrito_aux)
         elif opt == 4:
             if not carrito:
-                print("No hay ningún producto en el carrito ...")
+                print(f"{AMARILLO}No hay ningún producto en el carrito ...{BLANCO}")
                 continue
-            print("Confirmar vaciar carrito [1) Si , otro) Cancelar")
+            print(f"{AZUL}Confirmar vaciar carrito [1) Si , otro) Cancelar]{BLANCO}")
             opt = input("> ")
             if opt == '1':
                 vaciar_carrito(inv,carrito,carrito_aux)
-                print("¡ Carrito vaciado !")
+                print(f"{VERDE}¡ Carrito vaciado !{BLANCO}")
         elif opt == 5:
             if not carrito:
-                print("No hay ningún producto en el carrito ...")
+                print(f"{AMARILLO}No hay ningún producto en el carrito ...{BLANCO}")
                 continue
-            finalizar_compra(carrito,carrito_aux)
-            break
+
+            if finalizar_compra(carrito,carrito_aux):
+                break
         else:
             if carrito:
-                opt = input("Se vaciará el carrito, ¿Continuar? [1) Si , Otro) No]\n> ")
+                opt = input(f"{AZUL}Se vaciará el carrito, ¿Continuar? [1) Si , Otro) No]\n> {BLANCO}")
                 if opt == "1":
                     vaciar_carrito(inv,carrito,carrito_aux)
                     break
@@ -88,7 +89,7 @@ def agregar_producto_carrito(inv,carr,c_aux):
     for id_p , p in inv.items():
         if id_p == id_prod:
             if p["stock"] < 1:
-                print("No hay suficiente inventario para agregar ...")
+                print(f"{AMARILLO}No hay suficiente inventario para agregar ...{BLANCO}")
                 return
             prod = p
             p["stock"] -= 1
@@ -100,7 +101,7 @@ def agregar_producto_carrito(inv,carr,c_aux):
     else:
         c_aux[prod["ID"]] += 1
 
-    print(f"¡ Producto {inv[id_prod]["nombre"]} agregado con exito !")
+    print(f"{VERDE}¡ Producto {inv[id_prod]["nombre"]} agregado con exito !{BLANCO}")
 
 def eliminar_producto_carrito(inv,carr,c_aux):
     ver_carrito(carr,c_aux)
@@ -116,7 +117,7 @@ def eliminar_producto_carrito(inv,carr,c_aux):
             break
             
     if prod is None:
-        print(">>> E406: Producto no existe en carrito ...")
+        print(f"{ROJO}'>>> E406: Producto no existe en carrito ...{BLANCO}")
         return
 
     for id_p, p in inv.items():
@@ -130,26 +131,22 @@ def eliminar_producto_carrito(inv,carr,c_aux):
         c_aux.pop(prod["ID"])
         carr.remove(prod)
 
-    print(f"¡ Producto {inv[id_prod]["nombre"]} eliminado con exito !")
+    print(f"{VERDE}¡ Producto {inv[id_prod]["nombre"]} eliminado con exito !{BLANCO}")
 
 def ver_carrito(carr,c_aux):
-    print("--- CARRITO ---")
+    print(f"{NEGRITA}--- CARRITO ---{BLANCO}")
     if not carr:
-        print("No hay ningún producto agregado al carrito ...")
+        print(f"{AMARILLO}No hay ningún producto agregado al carrito ...{BLANCO}")
         return
+    imprimir_carrito(carr,c_aux)
+
+def imprimir_carrito(carr,c_aux):
     print("╔" + "═" * 70 + "╗")
     print(f"║{"ID":>3} │ {"Cant":<5} │ {"Nombre":<30} │ {"Precio":<10} │ {"Total":>10}║")
     print(f"╠{"═" * 4:>3}╤{"═" * 7:<5}╤{"═" * 32:<30}╤{"═" * 12:<10}╤{"═" * 11:>10}╣")
     for prod in carr:
-        imprimir_producto_carrito(prod,c_aux)
+        imprimir_producto_carrito(prod, c_aux)
     print(f"╚{"═" * 4:>3}╧{"═" * 7:<5}╧{"═" * 32:<30}╧{"═" * 12:>10}╧{"═" * 11:>10}╝")
-
-def imprimir_carrito(carr,c_aux):
-    texto = ""
-    for prod in carr:
-        texto += f"{prod["ID"]} | {c_aux[prod["ID"]]}  {prod["nombre"]}  ${prod["precio"]} == ${prod["precio"] * c_aux[prod["ID"]]}\n\t"
-
-    return texto
 
 def vaciar_carrito(inv,carr,c_aux):
     if not carr:
@@ -162,31 +159,33 @@ def vaciar_carrito(inv,carr,c_aux):
 
 def finalizar_compra(carr,c_aux):
     if not carr:
-        return
+        return False
 
     total = 0
 
     for prod, (id_prod, cantidad) in zip(carr, c_aux.items()):
         total += prod["precio"] * cantidad
 
-    print(textwrap.dedent(f"""
-    Artículos: {len(carr)}
-    -----------------------------------------------------
-    {imprimir_carrito(carr,c_aux)}-----------------------------------------------------
-    Total: ${total}
-    ¿Desea completar la compra? [1) Si , Otro) No]"""))
+    print(f"Artículos: {len(carr)}")
+
+    ver_carrito(carr,c_aux)
+
+    print(f"Total: ${total}")
+    print(f"{AZUL}¿Desea completar la compra? [1) Si , Otro) No]{BLANCO}")
 
     opt = input("> ")
 
     if opt != "1":
-        print("Compra cancelada...")
-        return
+        print(f"{AMARILLO}Compra cancelada...{BLANCO}")
+        return False
 
-    print(" ¡ Compra completada !")
+    print(f"{VERDE}¡ Compra completada !{BLANCO}")
 
     generar_ticket_venta(carr,c_aux,total)
 
     carr.clear()
+
+    return True
 
 # TODO relacionado con gestion de inventario //////////////////////
 
@@ -200,7 +199,7 @@ def menu_inventario(inv):
                 3) Modificar/Eliminar productos
                 0) Salir"""))
 
-        opt = detectar_valor_entero_positivo("")
+        opt = detectar_valor_entero_positivo("",3)
 
         if opt == 1:
             ver_inventario(inv)
@@ -212,9 +211,9 @@ def menu_inventario(inv):
             break
 
 def ver_inventario(inv):
-    print("--- INVENTARIO ---")
+    print(f"{NEGRITA}--- INVENTARIO ---{BLANCO}")
     if not inv:
-        print("No hay ningun producto en inventario ...")
+        print(f"{AMARILLO}No hay ningun producto en inventario ...{BLANCO}")
         return
     print("╔" + "═" * 112 + "╗")
     print(f"║{"ID":>3} │ {"Nombre":<30} │ {"Proveedor":<30} │ {"Categoria":<20} │{"Precio":>10} │ {"Stock":>5}║")
@@ -231,19 +230,19 @@ def agregar_producto(inv):
 
     nombre = input("Nombre:\n> ")
     if nombre == "":
-        print("Cancelando ...")
+        print(f"{AMARILLO}Cancelando ...{BLANCO}")
         return
 
     categoria = input("Categoría:\n> ")
     if categoria == "":
-        print("Cancelando ...")
+        print(f"{AMARILLO}Cancelando ...{BLANCO}")
         return
 
     precio = detectar_valor_decimal_positivo("Precio:")
 
     proveedor = input("Proveedor:\n> ")
     if proveedor == "":
-        print("Cancelando ...")
+        print(f"{AMARILLO}Cancelando ...{BLANCO}")
         return
 
     stock = detectar_valor_entero_positivo("Stock:")
@@ -263,7 +262,7 @@ def agregar_producto(inv):
 
 def administrar_inventario(inv):
     if not inv:
-        print("No hay ningún producto en inventario :o ...")
+        print(f"{AMARILLO}No hay ningún producto en inventario :o ...{BLANCO}")
         return
     while True:
         ver_inventario(inv)
@@ -275,7 +274,7 @@ def administrar_inventario(inv):
             producto = inv[id_prod]
         except KeyError:
             if id_prod != 0:
-                print(">>> E404: Producto no encontrado  ...")
+                print(f"{ROJO}>>> E404: Producto no encontrado  ...{BLANCO}")
             return
 
         print(f"Producto: {producto["nombre"]}")
@@ -286,7 +285,7 @@ def administrar_inventario(inv):
         2) Eliminar producto
         0) Cancelar operación"""))
 
-        opt = detectar_valor_entero_positivo("")
+        opt = detectar_valor_entero_positivo("",2)
 
         if opt == 1:
             modificar_atributo(producto)
@@ -306,7 +305,7 @@ def modificar_atributo(prod):
         5) Aumentar/Disminuir stock ¡¡Verificar stock actual antes de continuar!!
         0) Salir"""))
 
-        opt = detectar_valor_entero_positivo("")
+        opt = detectar_valor_entero_positivo("",5)
 
         if opt == 1:
             nuevo_nombre = detectar_cadena_vacia("Nuevo nombre:")
@@ -327,7 +326,7 @@ def modificar_atributo(prod):
                 print("...Porque?... Cancelando...")
                 continue
             elif nuevo_stock < 0 and (prod["stock"] + nuevo_stock) < 0:
-                print(">>> E407: No se puede reducir stock no existente...")
+                print(f"{ROJO}>>> E407: No se puede reducir stock no existente...{BLANCO}")
                 continue
             else:
                 prod["stock"] += nuevo_stock
@@ -352,7 +351,7 @@ def detectar_existencia_inventario(inv,id_prod):
         return True
     except KeyError:
         if id != 0:
-            print(">>> E404: Producto no encontrado  ...")
+            print(f"{ROJO}>>> E404: Producto no encontrado  ...{BLANCO}")
             return False
 
 def detectar_cadena_vacia(mensaje_entrada):
@@ -363,12 +362,12 @@ def detectar_cadena_vacia(mensaje_entrada):
         cad = input("> ")
 
         if cad.strip() == "":
-            print(">>> E405: Se necesita ingresar un valor ...")
+            print(f"{ROJO}>>> E405: Se necesita ingresar un valor ...{BLANCO}")
             continue
 
         return cad
 
-def detectar_valor_entero_positivo(mensaje_entrada):
+def detectar_valor_entero_positivo(mensaje_entrada,valor_maximo = -1):
     while True:
         try:
             if mensaje_entrada != "":
@@ -377,13 +376,17 @@ def detectar_valor_entero_positivo(mensaje_entrada):
             val = int(input("> "))
 
             if val < 0:
-                print(">>> E408: Valor incoherente detectado, intente de nuevo ...")
+                print(f"{ROJO}>>> E408: Valor incoherente detectado, intente de nuevo ...{BLANCO}")
                 continue
+            elif valor_maximo > 0:
+                if val > valor_maximo:
+                    print(f"{ROJO}>>> E400: Opción inexistente, intente de nuevo ...{BLANCO}")
+                    continue
 
             return val
 
         except ValueError:
-            print(">>> E401: Valor erróneo ingresado, intente de nuevo ...")
+            print(f"{ROJO}>>> E401: Valor erróneo ingresado, intente de nuevo ...{BLANCO}")
             continue
             
 def detectar_valor_entero(mensaje_entrada):
@@ -397,7 +400,7 @@ def detectar_valor_entero(mensaje_entrada):
             return val
 
         except ValueError:
-            print(">>> E401: Valor erróneo ingresado, intente de nuevo ...")
+            print(f"{ROJO}>>> E401: Valor erróneo ingresado, intente de nuevo ...{BLANCO}")
             continue
 
 def detectar_valor_decimal_positivo(mensaje_entrada):
@@ -409,21 +412,27 @@ def detectar_valor_decimal_positivo(mensaje_entrada):
             val = float(input("> "))
 
             if val < 0.01:
-                print(">>> E408: Valor incoherente detectado, intente de nuevo ...")
+                print(f"{ROJO}>>> E408: Valor incoherente detectado, intente de nuevo ...{BLANCO}")
                 continue
 
             return val
 
         except ValueError:
-            print(">>> E401: Valor erróneo ingresado, intente de nuevo ...")
+            print(f"{ROJO}>>> E401: Valor erróneo ingresado, intente de nuevo ...{BLANCO}")
             continue
 
+# TODO relacionado con impresión en consola
+
 def imprimir_producto_inventario(prod):
-    print(f"║{prod["ID"]:>3} │ {prod["nombre"]:<30} │ {prod["proveedor"]:<30} │ {prod["categoria"]:<20} │${prod["precio"]:>10.2f}│ {prod["stock"]:>5}║")
+    if prod["stock"] > 5:
+        print(f"║{prod["ID"]:>3} │ {prod["nombre"]:<30} │ {prod["proveedor"]:<30} │ {prod["categoria"]:<20} │${prod["precio"]:>10.2f}│ {prod["stock"]:>5}║")
+    elif prod["stock"] > 0:
+        print(f"║{AMARILLO}{prod["ID"]:>3} │ {prod["nombre"]:<30} │ {prod["proveedor"]:<30} │ {prod["categoria"]:<20} │${prod["precio"]:>10.2f}│ {prod["stock"]:>5}{BLANCO}║")
+    else:
+        print(f"║{ROJO}{prod["ID"]:>3} │ {prod["nombre"]:<30} │ {prod["proveedor"]:<30} │ {prod["categoria"]:<20} │${prod["precio"]:>10.2f}│ {prod["stock"]:>5}{BLANCO}║")
 
 def imprimir_producto_carrito(prod,c_aux):
-    print(f"║{prod["ID"]:>3} │ {c_aux[prod["ID"]]:>5} │ {prod["nombre"]:<30} │${prod["precio"]:>10.2f} │${prod["precio"] * c_aux[prod["ID"]]:>10.2f}║")
-    #print(f"{prod["ID"]} | {c_aux[prod["ID"]]}  {prod["nombre"]}  ${prod["precio"]} == ${prod["precio"] * c_aux[prod["ID"]]}")
+        print(f"║{prod["ID"]:>3} │ {c_aux[prod["ID"]]:>5} │ {prod["nombre"]:<30} │${prod["precio"]:>10.2f} │${prod["precio"] * c_aux[prod["ID"]]:>10.2f}║")
 
 def generar_ticket_venta(carr,c_aux,total):
     os.makedirs("Tickets_venta", exist_ok=True)
@@ -447,9 +456,45 @@ def generar_ticket_venta(carr,c_aux,total):
     with open(ruta, "w", encoding="utf-8") as f:
         json.dump(ticket, f, ensure_ascii=False, indent=2)
 
+# TODO relacionado con ejecución del código
+
+# ID global para inventario
 global identificador
 
+# Colores para la consola
+NEGRITA = "\033[1m"
+ROJO = "\033[31m"
+VERDE = "\033[32m"
+AMARILLO = "\033[33m"
+AZUL = "\033[34m"
+BLANCO = "\033[0m"
+
 if __name__ == "__main__":
-    inventario = {}
+    inventario = {
+        1: {
+            "ID": 1,
+            "nombre": "Router Nimbus AX1800",
+            "categoria": "Redes",
+            "precio": 799.00,
+            "proveedor": "NetWave",
+            "stock": 7
+        },
+        2: {
+            "ID": 2,
+            "nombre": "Cámara Web CrystalView 1080p",
+            "categoria": "Periféricos",
+            "precio": 459.90,
+            "proveedor": "OptiCam",
+            "stock": 3
+        },
+        3: {
+            "ID": 3,
+            "nombre": "PowerBank Thunder 20,000mAh",
+            "categoria": "Energía",
+            "precio": 349.00,
+            "proveedor": "ChargeFlow",
+            "stock": 1
+        }
+    }
     identificador = obtener_mayor_id(inventario)
     menu_principal(inventario)
