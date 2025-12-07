@@ -1,0 +1,14 @@
+{
+  "fecha": "20251207_044049",
+  "productos": [
+    {
+      "ID": 2,
+      "nombre": "Cámara Web CrystalView 1080p",
+      "categoria": "Perifericos",
+      "precio": 459.9,
+      "proveedor": "OptiCam",
+      "cantidad": 1
+    }
+  ],
+  "total": 459.9
+}
