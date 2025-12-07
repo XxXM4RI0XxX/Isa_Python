@@ -82,7 +82,7 @@ def agregar_producto_carrito(inv,carr,c_aux):
     while True:
         ver_productos_inventario(inv)
 
-        id_prod = detectar_id_inventario("Opción ó ID de producto:")
+        id_prod = detectar_id_filtro("Opción ó ID de producto:")
         try:
             if id_prod.upper() == 'F':
                 inv_aux = menu_filtro(inv)
@@ -211,42 +211,68 @@ def finalizar_compra(carr,c_aux):
 # TODO relacionado con gestion de inventario //////////////////////
 
 def menu_inventario(inv):
+    global inventario
     while True:
+        print(textwrap.dedent(f"{NEGRITA}{MORADO}◘ ◘ ◘ INVENTARIO ◘ ◘ ◘{BLANCO}"))
+        ver_productos_inventario(inv,False) # Imprimir inventario
+        print(f"{AZUL}Opcion: 'A' para agregar un nuevo producto{BLANCO}")
 
-        print(textwrap.dedent(f"""
-                {NEGRITA}{MORADO}◘ ◘ ◘ INVENTARIO ◘ ◘ ◘{BLANCO}
-                1) Ver inventario
-                2) Agregar nuevo producto
-                3) Modificar/Eliminar productos
-                0) Salir"""))
+        id_prod = detectar_id_filtro("Opción ó ID de producto:",True) # Elegir opcion
+        try:
+            if id_prod.upper() == 'A':
+                agregar_producto(inv) # Si la opción es agregar un producto
+                continue
+            elif id_prod.upper() == 'F' and inv: # Si la opción es Filtrar 'F'
+                inv_aux = menu_filtro(inv) # Regresa un inventario auxiliar filtrado
+                if not inv_aux:
+                    print(f"{AMARILLO}No hubo coincidencias ...{BLANCO}")
+                    return inv
+                menu_inventario(inv_aux) # Itera de nuevo el menu de inventario con el nuevo inventario filtrado
+                break
+            elif id_prod.upper() == 'O' and inv: # Ordenar el inventario
+                inv = dict(menu_orden(inv))
+                continue
+            else:
+                print(f"{ROJO}E000: ERROR DESCONOCIDO !..{BLANCO}")
+                return
+        except AttributeError: # En caso de detectar ID de producto envés de opción
+            if id_prod == 0: # Si es 0 cancela
+                print(f"{AMARILLO}Cancelando...{BLANCO}")
+                return inv
 
-        opt = detectar_valor_entero_positivo("",3)
+        try:
+            producto = inv[id_prod] # Verificar existencia en inventario
+        except KeyError:
+            if id_prod != 0:
+                print(f"{ROJO}>>> E404: Producto no encontrado  ...{BLANCO}")
+            return inv
+
+        print(f"\n{NEGRITA}{MORADO}Producto: {producto["nombre"]}{BLANCO}")
+
+        print(textwrap.dedent("""        ¿Que acción desea realizar?
+        1) Modificar atributo
+        2) Eliminar producto
+        0) Cancelar operación"""))
+
+        opt = detectar_valor_entero_positivo("",2)
 
         if opt == 1:
-            while True:
-                ver_productos_inventario(inv)
-                opt = input("Opción: ")
-                if opt == 0:
-                    break
-                elif opt.upper() == 'F':
-                    inv_aux = menu_filtro(inv)
-                    if not inv_aux:
-                        print(f"{AMARILLO}No hubo coincidencias ...{BLANCO}")
-                        return inv
-                    inventario_filtrado(inv_aux)
-                elif opt.upper() == 'O':
-                    inv = dict(menu_orden(inv))
-                else:
-                    break
+            modificar_atributo(producto)
         elif opt == 2:
-            agregar_producto(inv)
-        elif opt == 3:
-            administrar_inventario(inv)
+            opt = input(f"{AZUL}¿Seguro desea eliminar {producto["nombre"]} del inventario? [1) Si | Otro) No]{BLANCO}\n> ")
+
+            if opt == "1":
+                inventario.pop(id_prod)
+                print(f"{VERDE} ¡ Producto eliminado !{BLANCO}\n")
+                break
+            else:
+                print(f"{AMARILLO}Cancelado ...{BLANCO}")
         else:
             break
 
-def ver_productos_inventario(inv,opciones=True):
-    print(f"{NEGRITA}{MORADO}○ ○ ○ PRODUCTOS ○ ○ ○{BLANCO}")
+def ver_productos_inventario(inv,titulo=True):
+    if titulo:
+        print(f"{NEGRITA}{MORADO}○ ○ ○ PRODUCTOS ○ ○ ○{BLANCO}")
     if not inv:
         print(f"{AMARILLO}No hay ningun producto en inventario ...{BLANCO}")
         return
@@ -256,8 +282,7 @@ def ver_productos_inventario(inv,opciones=True):
     for llave, producto in inv.items():
         imprimir_producto_inventario(producto)
     print(f"╚{"═"*4:>3}╧{"═"*32:<30}╧{"═"*32:<30}╧{"═"*22:<20}╧{"═"*11:>10}╧{"═"*6:>5}╝")
-    if opciones:
-        print(f"{AZUL}Opciones: 'O' para ordenar resultados | 'F' para filtrar resultados | 0 para salir{BLANCO}")
+    print(f"{AZUL}Opciones: 'O' para ordenar resultados | 'F' para filtrar resultados | 0 para salir{BLANCO}")
 
 def agregar_producto(inv):
     global identificador
@@ -297,82 +322,30 @@ def agregar_producto(inv):
 
     ver_productos_inventario(inv)
 
-def administrar_inventario(inv):
-    if not inv:
-        print(f"{AMARILLO}No hay ningún producto en inventario :o ...{BLANCO}")
-        return
-    while True:
-        if not inv:
-            print(f"{AMARILLO}No hay productos en inventario :o ...{BLANCO}")
-            return
-        while True:
-            ver_productos_inventario(inv)
-
-            id_prod = detectar_id_inventario("Opción ó ID de producto:")
-            try:
-                if id_prod.upper() == 'F':
-                    menu_filtro(inv)
-                elif id_prod.upper() == 'O':
-                    inv = dict(menu_orden(inv))
-            except AttributeError:
-                if id_prod == 0:
-                    print(f"{AMARILLO}Saliendo...{BLANCO}")
-                    return
-                else:
-                    break
-
-        try:
-            producto = inv[id_prod]
-        except KeyError:
-            if id_prod != 0:
-                print(f"{ROJO}>>> E404: Producto no encontrado  ...{BLANCO}")
-            return
-
-        print(f"\n{NEGRITA}{MORADO}Producto: {producto["nombre"]}{BLANCO}")
-
-        print(textwrap.dedent("""        ¿Que acción desea realizar?
-        1) Modificar atributo
-        2) Eliminar producto
-        0) Cancelar operación"""))
-
-        opt = detectar_valor_entero_positivo("",2)
-
-        if opt == 1:
-            modificar_atributo(producto)
-        elif opt == 2:
-            opt = input(f"{AZUL}¿Seguro desea eliminar {producto["nombre"]} del inventario? [1) Si | Otro) No]{BLANCO}\n> ")
-
-            if opt == "1":
-                inv.pop(id_prod)
-                print(f"{VERDE} ¡ Producto eliminado !{BLANCO}\n")
-            else:
-                print(f"{AMARILLO}Cancelado ...{BLANCO}")
-        else: break
-
 def modificar_atributo(prod):
     while True:
         print(f"\n{NEGRITA}{MORADO}{prod["nombre"]}{BLANCO}")
         print(textwrap.dedent(f"""        ¿Que atributo desea modificar?
         1) Nombre
-        2) Categoría
-        3) Precio unitario
-        4) Proveedor
+        2) Categoría {CIAN}[{prod["categoria"]}]{BLANCO}
+        3) Precio unitario {CIAN}[${prod["precio"]}]{BLANCO}
+        4) Proveedor {CIAN}[{prod["proveedor"]}]{BLANCO}
         5) Aumentar/Disminuir stock {AMARILLO}¡¡Verificar stock actual antes de continuar!!{BLANCO}
         0) Salir"""))
 
         opt = detectar_valor_entero_positivo("",5)
 
         if opt == 1:
-            nuevo_nombre = detectar_cadena_vacia(f"Nuevo nombre: {CIAN}[{prod["nombre"]}]{BLANCO}")
+            nuevo_nombre = detectar_cadena_vacia(f"Nuevo nombre:")
             prod["nombre"] = nuevo_nombre
         elif opt == 2:
-            nueva_categoria = detectar_cadena_vacia(f"Nueva categoria: {CIAN}[{prod["categoria"]}]{BLANCO}")
+            nueva_categoria = detectar_cadena_vacia(f"Nueva categoria: ")
             prod["categoria"] = nueva_categoria
         elif opt == 3:
-            nuevo_precio = detectar_valor_decimal_positivo(f"Nuevo precio: {CIAN}[${prod["precio"]}]{BLANCO}")
+            nuevo_precio = detectar_valor_decimal_positivo(f"Nuevo precio: ")
             prod["precio"] = nuevo_precio
         elif opt == 4:
-            nuevo_proveedor = detectar_cadena_vacia(f"Nuevo proveedor: {CIAN}[{prod["proveedor"]}]{BLANCO}")
+            nuevo_proveedor = detectar_cadena_vacia(f"Nuevo proveedor: ")
             prod["proveedor"] = nuevo_proveedor
         elif opt == 5:
 
@@ -524,7 +497,7 @@ def detectar_cadena_vacia(mensaje_entrada):
 
         return cad
 
-def detectar_id_inventario(mensaje_entrada):
+def detectar_id_filtro(mensaje_entrada, agregar=False):
     while True:
         entrada = ''
         try:
@@ -542,6 +515,8 @@ def detectar_id_inventario(mensaje_entrada):
 
         except ValueError:
             if entrada.upper() == 'F' or entrada.upper() == 'O':
+                return entrada
+            if agregar and entrada.upper() == 'A':
                 return entrada
             else:
                 print(f"{ROJO}>>> E401: Valor erróneo ingresado, intente de nuevo ...{BLANCO}")
@@ -641,6 +616,8 @@ def generar_ticket_venta(carr,c_aux,total):
 # ID global para inventario
 global identificador
 
+# Inventario de acceso general
+global inventario
 # Colores para la consola
 NEGRITA = "\033[1m"
 ROJO = "\033[31m"
