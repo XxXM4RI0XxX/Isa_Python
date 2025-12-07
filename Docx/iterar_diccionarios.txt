@@ -6,7 +6,7 @@ for x in dicc | llave
 
 for x in dicc.keys() | llave 
 
-for x in dicc.values() | valor 
+for x in dicc.values() | valor
 
 for k, v in dicc.items() | llave y valor
 

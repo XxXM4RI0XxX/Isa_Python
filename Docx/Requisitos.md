@@ -53,11 +53,10 @@ El inventario es manejado por una lista de productos,
       - El sistema requiere ingresar la información completa del producto, caso contrario, se niega el registro del mismo
       - El sistema valída que la información ingresada sea del tipo requerido
 	- *Modificar producto*
-      - El sistema permite modificar toda la información del producto, excepto ID y proveedor
+      - El sistema permite modificar toda la información del producto, excepto ID
       - El sistema válida que la información actualizada sea correcta y coherente (no negativa o nula)
     - *Eliminar producto*
       - La eliminación de productos se realiza producto por producto, para evitar errores
-      - No se puede eliminar un producto que aún tenga stock en inventario
       - El sistema pide confirmación antes de la eliminación del producto
 - ***Venta de productos***
     - El sistema crea un carrito de venta donde se agregan los productos a comprar
