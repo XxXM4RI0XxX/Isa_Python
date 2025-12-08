@@ -30,7 +30,10 @@
 - En caso de información errónea del usuario, solo se requiere reingresar el valor
 
 # Estructura de datos
-El inventario es manejado por una lista de productos, 
+- El inventario es manejado por un diccionario de productos, relacionados con su ID.
+- Cada producto es un diccionario relacionado con sus atributos.
+- El carrito de compras es una lista que contiene los productos
+- El carrito auxiliar es un diccionario que relaciona un ID de producto con la cantidad agregada en el carrito
 
 # Información del producto
 - ID
@@ -46,8 +49,9 @@ El inventario es manejado por una lista de productos,
       - Se pueden ver todos los productos en una sola lista
       - Los productos se pueden filtrar por: Categoría, disponibilidad o proveedor
       - Los productos se pueden ordenar por: ID, nombre, precio unitario y stock
-      - Los productos se muestran con su valor unitario, y valor total de todas las piezas en existencia
       - Los productos con *stock* menor a 5 unidades son resaltados de manera llamativa en la lista
+      - El inventario muestra el total de piezas
+      - El inventario muestra la valuación total de todas las existencias
 	- *Agregar producto*
       - Cada producto tiene un ID único e inmutable
       - El sistema requiere ingresar la información completa del producto, caso contrario, se niega el registro del mismo
@@ -71,27 +75,6 @@ El inventario es manejado por una lista de productos,
       - Total de la compra
     - El inventario se actualiza de manera automática, descontando los productos comprados
     - El sistema vuelve al menú principal una vez completada la venta
-- ***Generación de reportes***
-    - El sistema permite generar reportes de tanto de ventas como de inventario
-    - El reporte de ventas se puede filtrar por un rango de fechas, o una fecha específica. Este reporte contiene:
-      - Ventas realizadas en ese rango elegido
-      - Productos y cantidades compradas por venta
-      - Total de cada venta
-      - Un total de los productos comprados y sus cantidades, asi como el total de venta de ese rango de fechas
-      - Se puede ordenar por:
-        - Número de venta
-        - Fecha de venta
-        - Total de venta
-    - El reporte de inventario se genera tomando en cuenta el inventario actual. Este reporte contiene:
-      - Todos los productos registrados en el inventario (aunque no tengan stock)
-      - Se muestra cada producto con su precio unitario, stock actual y valor total de stock
-      - Se muestra una "valuación total" donde se muestra el valor total de todos los productos en stock
-      - Se puede filtrar por disponibilidad
-      - Se puede ordenar por:
-        - ID de producto
-        - Nombre de producto
-        - Cantidad en stock (en caso de no estar filtrado por no disponibilidad)
-        - Precio unitario y total
 - ***Validación***
   - El sistema muestra mensajes de *confirmación*
       - Operación exitosa... y similares
@@ -104,10 +87,10 @@ El inventario es manejado por una lista de productos,
 
 # Funciones avanzadas
 
-- ***Respaldo de datos :o*** (opcional xd)
-***Documentación***
+- Respaldo de datos (opcional)
+- ***Documentación***
 - Pruebas unitarias de cada función
-- Descripción de cada función (parámetros, retorno, propósito)... podrían contar para los docstring xd
+- Descripción de cada función (parámetros, retorno, propósito)
 - Comentarios y docstrings en el código
 - ***Estructura de datos utilizada***
 - ***Manual de usuario***
@@ -115,11 +98,8 @@ El inventario es manejado por una lista de productos,
 	- Diseño y justificación (porque se eligio ese diseño xd)
 - Limitaciones conocidas del sistema
 
-> Hay un cuestionario el cual deben de responder cada integrante del equipo, aqui supongo que depediendo de lo que me diga Isa, puedo generar respuestas con diferentes personalidades xd, o solo las de Isa... Igual el cuestionario se responde al final (QUITAR ESTO XD). Tiene que ir en PDF, incluir ejemplos de código si es necesario
-
-# ***OPCIONAL (Si queda tiempo xd)***
-Por complejidad:
+# ***OPCIONAL***
 1. Archivos que guarden la información
 2. Base de datos
 3. Informe estadístico de productos más vendidos
-4. Interfaz gráfica (si queda muuuucho tiempo nadamás)
+4. Interfaz gráfica

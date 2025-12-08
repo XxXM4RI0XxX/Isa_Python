@@ -12,3 +12,4 @@ print(text + text2)
 os.makedirs("Test", exist_ok=True)
 print(len("SSD UltraFlash 512GB"))
 print(len("║ ID │ Cantidad │ Nombre                         │ Precio     │      Total║"))
+

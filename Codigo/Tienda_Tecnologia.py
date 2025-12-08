@@ -2,6 +2,15 @@ import textwrap
 import os, json
 from datetime import datetime
 
+# Sistema de gestión de inventario
+# Equipo:
+# Isabel Pimentel Puente (Project Manager and Query Developer and QA & Documentation)
+# Mariana Vallejo Bustillo (Input Developer and Processing Developer)
+# 8 Diciembre 2025
+
+#Diccionario para almacenar productos
+global inventario
+
 def menu_principal(inv):
     """
     Este es el menú principal de todo el programa, desde aquí se puede acceder a todas las funciones
@@ -202,19 +211,6 @@ def ver_carrito(carr,c_aux):
     print(f"{CIAN}Productos: {productos}")
     print(f"Total carrito: ${total}{BLANCO}")
 
-def imprimir_carrito(carr,c_aux):
-    """
-    Muestra en consola visualizar todos los productos en el carrito de compras, acomodados en una tabla con diseño.
-    :param carr: Carrito de compras
-    :param c_aux: Carrito auxiliar
-    """
-    print("╔" + "═" * 70 + "╗")
-    print(f"║{"ID":>3} │ {"Cant":<5} │ {"Nombre":<30} │ {"Precio":<10} │ {"Total":>10}║")
-    print(f"╠{"═" * 4:>3}╤{"═" * 7:<5}╤{"═" * 32:<30}╤{"═" * 12:<10}╤{"═" * 11:>10}╣")
-    for prod in carr:
-        imprimir_producto_carrito(prod, c_aux)
-    print(f"╚{"═" * 4:>3}╧{"═" * 7:<5}╧{"═" * 32:<30}╧{"═" * 12:>10}╧{"═" * 11:>10}╝")
-
 def vaciar_carrito(inv,carr,c_aux):
     """
     Elimina todos los productos agregados al carrito de compras (también vacía el carrito auxiliar), y devuelve el stock al inventario
@@ -322,27 +318,7 @@ def menu_inventario(inv):
                 print(f"{ROJO}>>> E404: Producto no encontrado  ...{BLANCO}")
             return
 
-        print(f"\n{NEGRITA}{MORADO}Producto: {producto["nombre"]}{BLANCO}")
-
-        print(textwrap.dedent("""        ¿Que acción desea realizar?
-        1) Modificar atributo
-        2) Eliminar producto
-        0) Cancelar operación"""))
-
-        opt = detectar_valor_entero_positivo("",2)
-
-        if opt == 1:
-            modificar_atributo(producto)
-        elif opt == 2:
-            opt = input(f"{AZUL}¿Seguro desea eliminar {producto["nombre"]} del inventario? [1) Si | Otro) No]{BLANCO}\n> ")
-            if opt == "1":
-                inventario.pop(id_prod)
-                print(f"{VERDE} ¡ Producto eliminado !{BLANCO}\n")
-                break
-            else:
-                print(f"{AMARILLO}Cancelado ...{BLANCO}")
-        else:
-            print(f"{AMARILLO}Cancelando ...{BLANCO}")
+        if not menu_producto(producto):
             break
 
 def ver_productos_inventario(inv,titulo=True):
@@ -409,6 +385,38 @@ def agregar_producto(inv):
     identificador += 1
 
     ver_productos_inventario(inv)
+
+def menu_producto(prod):
+    """
+    Permite la modificación de atributos del producto, o la eliminación del mismo si se desea.
+    :param prod: Producto elegido
+    :return: ``True``: La operacion realizada permite continuar en el menú inventario
+    ``False``: La operación realizada requiere salir del menú inventario
+    """
+    print(f"\n{NEGRITA}{MORADO}Producto: {prod["nombre"]}{BLANCO}")
+
+    print(textwrap.dedent("""        ¿Que acción desea realizar?
+    1) Modificar atributo
+    2) Eliminar producto
+    0) Cancelar operación"""))
+
+    opt = detectar_valor_entero_positivo("", 2)
+
+    if opt == 1:
+        modificar_atributo(prod)
+        return True
+    elif opt == 2:
+        opt = input(f"{AZUL}¿Seguro desea eliminar {prod["nombre"]} del inventario? [1) Si | Otro) No]{BLANCO}\n> ")
+        if opt == "1":
+            inventario.pop(prod["ID"])
+            print(f"{VERDE} ¡ Producto eliminado !{BLANCO}\n")
+            return False
+        else:
+            print(f"{AMARILLO}Cancelado ...{BLANCO}")
+            return True
+    else:
+        print(f"{AMARILLO}Cancelando ...{BLANCO}")
+        return False
 
 def modificar_atributo(prod):
     """
@@ -567,33 +575,6 @@ def ordenar_inventario(inv, crit="ID", invertir = False):
 
 # TODO relacionado con ejecución del sistema /////////////////////
 
-def obtener_mayor_id(inv):
-    """
-    Regresa el mayor ID del inventario actual para usarlo como referencia para nuevos productos
-    :param inv: Inventario principal
-    :return: ``ID`` mayor en inventario
-    """
-    if not inv:  # si está vacío
-        return -1
-    return max(inv.keys())+1
-
-def detectar_existencia_inventario(inv,id_prod):
-    """
-    Detecta si el producto tiene disponibilidad en inventario.
-    Funciona buscando el ID ingresado en el inventario, si no existe tal ID, regresa un error
-    :param inv: Inventario principal
-    :param id_prod: ID de producto ingresado
-    :return: ``True``: Existe producto en inventario
-    ``False``: Error 404
-    """
-    try:
-        prod = inv[id_prod]
-        return True
-    except KeyError:
-        if id != 0:
-            print(f"{ROJO}>>> E404: Producto no encontrado  ...{BLANCO}")
-            return False
-
 def total_stock_inventario(inv):
     """
     Regresa el total de piezas en inventario, y el valor total del mismo
@@ -627,6 +608,23 @@ def total_productos_carrito(carr,c_aux):
         total_valor += prod["precio"] * cant
 
     return total_productos , total_valor
+
+def detectar_existencia_inventario(inv,id_prod):
+    """
+    Detecta si el producto tiene disponibilidad en inventario.
+    Funciona buscando el ID ingresado en el inventario, si no existe tal ID, regresa un error
+    :param inv: Inventario principal
+    :param id_prod: ID de producto ingresado
+    :return: ``True``: Existe producto en inventario
+    ``False``: Error 404
+    """
+    try:
+        prod = inv[id_prod]
+        return True
+    except KeyError:
+        if id != 0:
+            print(f"{ROJO}>>> E404: Producto no encontrado  ...{BLANCO}")
+            return False
 
 def detectar_entrada_vacia(mensaje_entrada):
     """
@@ -763,6 +761,19 @@ def imprimir_producto_inventario(prod):
     else:
         print(f"║{ROJO}{prod["ID"]:>3} │ {prod["nombre"]:<30} │ {prod["proveedor"]:<30} │ {prod["categoria"]:<20} │${prod["precio"]:>10.2f}│ {prod["stock"]:>5}{BLANCO}║")
 
+def imprimir_carrito(carr,c_aux):
+    """
+    Muestra en consola visualizar todos los productos en el carrito de compras, acomodados en una tabla con diseño.
+    :param carr: Carrito de compras
+    :param c_aux: Carrito auxiliar
+    """
+    print("╔" + "═" * 70 + "╗")
+    print(f"║{"ID":>3} │ {"Cant":<5} │ {"Nombre":<30} │ {"Precio":<10} │ {"Total":>10}║")
+    print(f"╠{"═" * 4:>3}╤{"═" * 7:<5}╤{"═" * 32:<30}╤{"═" * 12:<10}╤{"═" * 11:>10}╣")
+    for prod in carr:
+        imprimir_producto_carrito(prod, c_aux)
+    print(f"╚{"═" * 4:>3}╧{"═" * 7:<5}╧{"═" * 32:<30}╧{"═" * 12:>10}╧{"═" * 11:>10}╝")
+
 def imprimir_producto_carrito(prod,c_aux):
         """
         Función específica para mostrar en consola cada producto del carrito de compra
@@ -809,9 +820,6 @@ def generar_ticket_venta(carr,c_aux,total):
 # ID global para inventario
 global identificador
 
-# Inventario de acceso general
-global inventario
-
 # Colores para la consola
 NEGRITA = "\033[1m"
 ROJO = "\033[31m"
@@ -835,7 +843,7 @@ def llenar_inventario():
         3: {"ID": 3, "nombre": "Teclado RGB Spectra", "categoria": "Periferico", "precio": 799.00,
             "proveedor": "LightKeys", "stock": 20},
         4: {"ID": 4, "nombre": "Monitor VisionPro 27", "categoria": "Computo", "precio": 4299.00,
-            "proveedor": "ViewMax", "stock": 8},
+            "proveedor": "ViewMax", "stock": 3},
         5: {"ID": 5, "nombre": "USB UltraFlash 64GB", "categoria": "Almacenamiento", "precio": 159.99,
             "proveedor": "DataStone", "stock": 50},
         6: {"ID": 6, "nombre": "SSD Quantum 512GB", "categoria": "Almacenamiento", "precio": 999.00,
@@ -855,7 +863,7 @@ def llenar_inventario():
         13: {"ID": 13, "nombre": "MicroSD Turbo 128GB", "categoria": "Almacenamiento", "precio": 209.00,
              "proveedor": "MemMaster", "stock": 45},
         14: {"ID": 14, "nombre": "Impresora LaserJet Mini", "categoria": "Oficina", "precio": 2499.00,
-             "proveedor": "PrintCore", "stock": 6},
+             "proveedor": "PrintCore", "stock": 5},
         15: {"ID": 15, "nombre": "Paquete de Tinta CMYK", "categoria": "Oficina", "precio": 599.00,
              "proveedor": "PrintCore", "stock": 25},
         16: {"ID": 16, "nombre": "Tablet FlexiTab 10", "categoria": "Computo", "precio": 3299.00,
@@ -863,7 +871,7 @@ def llenar_inventario():
         17: {"ID": 17, "nombre": "Lámpara LED SmartLight", "categoria": "Hogar", "precio": 189.00,
              "proveedor": "BrightHome", "stock": 30},
         18: {"ID": 18, "nombre": "Teclado Mecánico Titan", "categoria": "Periferico", "precio": 1299.00,
-             "proveedor": "GearForge", "stock": 12},
+             "proveedor": "GearForge", "stock": 0},
         19: {"ID": 19, "nombre": "Mouse Gamer RazorClaw", "categoria": "Periferico", "precio": 699.00,
              "proveedor": "GearForge", "stock": 18},
         20: {"ID": 20, "nombre": "Hub USB-C 7-en-1", "categoria": "Accesorios", "precio": 499.00,
@@ -871,6 +879,16 @@ def llenar_inventario():
     }
 
     return inv
+
+def obtener_mayor_id(inv):
+    """
+    Regresa el mayor ID del inventario actual para usarlo como referencia para nuevos productos
+    :param inv: Inventario principal
+    :return: ``ID`` mayor en inventario
+    """
+    if not inv:  # si está vacío
+        return -1
+    return max(inv.keys())+1
 
 # Código inicial
 if __name__ == "__main__":
